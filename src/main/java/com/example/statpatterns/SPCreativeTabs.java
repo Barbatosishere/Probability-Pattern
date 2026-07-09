@@ -17,7 +17,7 @@ public final class SPCreativeTabs {
                     .icon(() -> SPItems.PROBABILITY_PATTERN.get().getDefaultInstance())
                     .displayItems((parameters, output) -> {
                         output.accept(SPItems.PROBABILITY_PATTERN.get());
-                        output.accept(SPBlocks.PROBABILITY_PATTERN_TERMINAL_ITEM.get());
+                        output.accept(SPItems.PROBABILITY_PATTERN_TERMINAL.get());
                     })
                     .build());
 
