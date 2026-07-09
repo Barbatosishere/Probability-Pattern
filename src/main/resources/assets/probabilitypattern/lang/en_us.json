@@ -1,8 +1,9 @@
 {
   "item.probabilitypattern.probability_pattern": "Probability Pattern",
-  "block.probabilitypattern.probability_pattern_terminal": "Probability Pattern Terminal",
+  "item.probabilitypattern.probability_pattern_terminal": "Probability Pattern Encoding Terminal",
+  "block.probabilitypattern.probability_pattern_terminal": "Probability Pattern Encoding Terminal",
   "itemGroup.probabilitypattern": "AE2 Probability Patterns",
-  "container.probabilitypattern.probability_pattern_terminal": "Probability Pattern Terminal",
+  "container.probabilitypattern.probability_pattern_terminal": "Probability Pattern Encoding Terminal",
   "container.probabilitypattern.inputs": "Inputs per attempt",
   "container.probabilitypattern.output": "Target output",
   "container.probabilitypattern.pattern": "Pattern",
@@ -12,9 +13,15 @@
   "container.probabilitypattern.target": "N",
   "container.probabilitypattern.probability": "p",
   "container.probabilitypattern.alpha": "a",
+  "gui.probabilitypattern.probability": "Probability",
+  "gui.probabilitypattern.batch": "N",
+  "probabilitypattern.tooltip.target_batch": "Batch multiplier N",
+  "probabilitypattern.tooltip.target_output": "Target total output",
   "probabilitypattern.tooltip.success_probability": "Success probability",
   "probabilitypattern.tooltip.alpha": "Significance",
   "probabilitypattern.tooltip.trials": "Planned attempts",
   "probabilitypattern.tooltip.distribution": "Test distribution",
   "probabilitypattern.tooltip.failure_probability": "Underproduction risk"
 }
+
+

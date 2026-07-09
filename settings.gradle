@@ -22,7 +22,12 @@ dependencyResolutionManagement {
             url = uri(file('.gradle-home/file-repo').absolutePath)
         }
         mavenCentral()
+        maven {
+            name = 'Jared Maven'
+            url = 'https://maven.blamejared.com'
+        }
     }
 }
 
 rootProject.name = 'statistical-patterns-addon'
+

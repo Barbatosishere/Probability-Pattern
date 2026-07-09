@@ -42,6 +42,7 @@ neoForge {
 
 dependencies {
     implementation "org.appliedenergistics:appliedenergistics2:${ae2_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
 
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
@@ -72,3 +73,5 @@ tasks.named('processResources', ProcessResources) {
         expand replaceProperties
     }
 }
+
+
