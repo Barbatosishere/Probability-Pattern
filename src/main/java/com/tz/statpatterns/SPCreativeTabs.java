@@ -1,0 +1,49 @@
+package com.tz.statpatterns;
+
+import appeng.core.definitions.ItemDefinition;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.tz.statpatterns.core.definition.SPItems;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public final class SPCreativeTabs {
+    public static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ProbabilityPatternMod.MOD_ID);
+
+    private static final Multimap<ResourceKey<CreativeModeTab>, ItemDefinition<?>> externalItemDefs = HashMultimap.create();
+    private static final List<ItemDefinition<?>> itemDefs = new ArrayList<>();
+
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = CREATIVE_TABS.register("main",
+            () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup.probabilitypattern"))
+                    .icon(() -> new ItemStack(SPItems.PROBABILITY_PATTERN.get()))
+                    .displayItems((parameters, output) -> {
+                        for (var itemDefinition : itemDefs) {
+                            output.accept(itemDefinition);
+                        }
+                    })
+                    .build());
+
+    public static void add(ItemDefinition<?> itemDef) {
+        itemDefs.add(itemDef);
+    }
+    public static void addExternal(ResourceKey<CreativeModeTab> tab, ItemDefinition<?> itemDef) {
+        externalItemDefs.put(tab, itemDef);
+    }
+
+    private SPCreativeTabs() {
+    }
+
+    public static void register(IEventBus modEventBus) {
+        CREATIVE_TABS.register(modEventBus);
+    }
+}
