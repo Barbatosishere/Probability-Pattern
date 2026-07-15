@@ -2,7 +2,6 @@
   "item.probabilitypattern.probability_pattern": "概率样板",
   "item.probabilitypattern.probability_pattern_terminal": "概率样板编码终端（概率）",
   "block.probabilitypattern.probability_pattern_terminal": "概率样板编码终端（概率）",
-  "block.probabilitypattern.probability_pattern_provider": "概率样板供应器",
   "itemGroup.probabilitypattern": "AE2 概率样板",
   "container.probabilitypattern.probability_pattern_terminal": "概率样板编码终端",
   "container.probabilitypattern.inputs": "每次尝试输入",

@@ -41,15 +41,14 @@ neoForge {
 }
 
 dependencies {
-    implementation "org.appliedenergistics:appliedenergistics2:${ae2_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    implementation "org.appliedenergistics:appliedenergistics2:${ae2_version}"
 
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     testImplementation 'org.assertj:assertj-core:3.26.0'
 }
-
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
@@ -76,3 +75,8 @@ tasks.named('processResources', ProcessResources) {
 }
 
 
+tasks.named('compileJava', JavaCompile) {
+    options.compilerArgs += [
+        '-Amixin.refmap=probabilitypattern.refmap.json'
+    ]
+}

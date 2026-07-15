@@ -2,7 +2,6 @@
   "item.probabilitypattern.probability_pattern": "Probability Pattern",
   "item.probabilitypattern.probability_pattern_terminal": "Probability Pattern Encoding Terminal",
   "block.probabilitypattern.probability_pattern_terminal": "Probability Pattern Encoding Terminal",
-  "block.probabilitypattern.probability_pattern_provider": "Probability Pattern Provider",
   "itemGroup.probabilitypattern": "AE2 Probability Patterns",
   "container.probabilitypattern.probability_pattern_terminal": "Probability Pattern Encoding Terminal",
   "container.probabilitypattern.inputs": "Inputs per attempt",

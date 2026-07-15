@@ -1,4 +1,4 @@
-package com.tz.statpatterns;
+package com.example.statpatterns;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
@@ -10,7 +10,7 @@ import appeng.helpers.IPatternTerminalMenuHost;
 import appeng.menu.implementations.MenuTypeBuilder;
 import appeng.menu.implementations.MenuTypeBuilder.MenuFactory;
 
-import com.tz.statpatterns.menu.ProbabilityPatternTerminalMenu;
+import com.example.statpatterns.terminal.ProbabilityPatternTerminalMenu;
 
 public final class SPMenus {
     private static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister

@@ -1,15 +1,13 @@
 {
-  "required": true,
-  "package": "com.tz.statpatterns.mixin",
-  "compatibilityLevel": "JAVA_21",
-  "mixins": [
-    "CraftingPlanSummaryDynamicFixMixin",
-    "CraftingServiceMixin"
-  ],
-  "injectors": {
-    "defaultRequire": 1
-  },
-  "overwrites": {
-    "requireAnnotations": true
-  }
+    "required": true,
+    "minVersion": "0.8",
+    "package": "com.example.statpatterns.mixin",
+    "compatibilityLevel": "JAVA_17",
+    "mixins": [
+        "CraftingServiceMixin",
+        "CraftingTreeNodeMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
 }
