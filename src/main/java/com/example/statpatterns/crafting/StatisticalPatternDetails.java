@@ -1,5 +1,6 @@
 package com.example.statpatterns.crafting;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -12,34 +13,33 @@ import net.minecraft.world.level.Level;
 
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.crafting.PatternDetailsTooltip;
+import appeng.api.ids.AEComponents;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
+import appeng.api.stacks.KeyCounter;
+import appeng.crafting.pattern.AEProcessingPattern;
+import appeng.crafting.pattern.EncodedProcessingPattern;
 
 import com.example.statpatterns.SPComponents;
 import com.example.statpatterns.SPItems;
 import com.example.statpatterns.math.ProbabilitySizing;
 import com.example.statpatterns.math.ProbabilitySizingResult;
 
-public final class StatisticalPatternDetails implements IPatternDetails {
-    private final AEItemKey definition;
+public final class StatisticalPatternDetails extends AEProcessingPattern {
     private final EncodedStatisticalPattern encoded;
-    private final ProbabilitySizingResult sizing;
-    private final IInput[] inputs;
-    private final List<GenericStack> outputs;
+    @Nullable
+    private final Long requestedOutputAmount;
 
     private StatisticalPatternDetails(AEItemKey definition, EncodedStatisticalPattern encoded) {
-        this.definition = Objects.requireNonNull(definition, "definition");
+        this(definition, encoded, null);
+    }
+
+    private StatisticalPatternDetails(AEItemKey definition, EncodedStatisticalPattern encoded,
+            @Nullable Long requestedOutputAmount) {
+        super(definition);
         this.encoded = Objects.requireNonNull(encoded, "encoded");
-        this.sizing = ProbabilitySizing.planAttempts(
-                encoded.output().amount(),
-                encoded.successProbability(),
-                encoded.alpha(),
-                encoded.smallSampleLimit());
-        this.inputs = encoded.inputsPerAttempt().stream()
-                .map(input -> new Input(input.what(), Math.multiplyExact(input.amount(), sizing.attempts())))
-                .toArray(IInput[]::new);
-        this.outputs = List.of(encoded.output());
+        this.requestedOutputAmount = requestedOutputAmount;
     }
 
     @Nullable
@@ -51,15 +51,31 @@ public final class StatisticalPatternDetails implements IPatternDetails {
         if (encoded == null) {
             throw new IllegalArgumentException("Missing statistical pattern component.");
         }
+        if (what.get(AEComponents.ENCODED_PROCESSING_PATTERN) == null) {
+            throw new IllegalArgumentException("Missing AE2 processing pattern component.");
+        }
         return new StatisticalPatternDetails(what, encoded);
+    }
+
+    public static ItemStack encode(List<GenericStack> sparseInputs, List<GenericStack> sparseOutputs,
+            double successProbability, double alpha) {
+        var output = sparseOutputs.stream().filter(Objects::nonNull).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("At least one output is required."));
+        var compactInputs = sparseInputs.stream().filter(Objects::nonNull).toList();
+        if (compactInputs.isEmpty()) {
+            throw new IllegalArgumentException("At least one input is required.");
+        }
+
+        var stack = new ItemStack(SPItems.PROBABILITY_PATTERN.get());
+        stack.set(AEComponents.ENCODED_PROCESSING_PATTERN, new EncodedProcessingPattern(sparseInputs, sparseOutputs));
+        stack.set(SPComponents.ENCODED_STATISTICAL_PATTERN.get(),
+                new EncodedStatisticalPattern(compactInputs, output, successProbability, alpha, 30));
+        return stack;
     }
 
     public static ItemStack encode(List<GenericStack> inputsPerAttempt, GenericStack output,
             double successProbability, double alpha) {
-        var stack = new ItemStack(SPItems.PROBABILITY_PATTERN.get());
-        stack.set(SPComponents.ENCODED_STATISTICAL_PATTERN.get(),
-                new EncodedStatisticalPattern(inputsPerAttempt, output, successProbability, alpha, 30));
-        return stack;
+        return encode(new ArrayList<>(inputsPerAttempt), List.of(output), successProbability, alpha);
     }
 
     public static PatternDetailsTooltip getInvalidPatternTooltip(ItemStack stack, Level level,
@@ -74,52 +90,85 @@ public final class StatisticalPatternDetails implements IPatternDetails {
     }
 
     @Override
-    public AEItemKey getDefinition() {
-        return definition;
-    }
-
-    @Override
     public IInput[] getInputs() {
-        return inputs;
+        if (requestedOutputAmount != null) {
+            var sizing = sizing();
+            return encoded.inputsPerAttempt().stream()
+                    .map(input -> new Input(input.what(), Math.multiplyExact(input.amount(), sizing.attempts())))
+                    .toArray(IInput[]::new);
+        }
+        return encoded.inputsPerAttempt().stream()
+                .map(input -> new Input(input.what(), input.amount()))
+                .toArray(IInput[]::new);
     }
 
     @Override
     public List<GenericStack> getOutputs() {
-        return outputs;
+        if (requestedOutputAmount != null) {
+            return List.of(new GenericStack(encoded.output().what(), requestedOutputAmount));
+        }
+        return List.of(encoded.output());
+    }
+
+    @Override
+    public void pushInputsToExternalInventory(KeyCounter[] inputHolder, PatternInputSink inputSink) {
+        var allInputs = new KeyCounter();
+        for (var counter : inputHolder) {
+            allInputs.addAll(counter);
+        }
+
+        for (var input : encoded.inputsPerAttempt()) {
+            var key = input.what();
+            var amount = Math.multiplyExact(input.amount(), sizing().attempts());
+            var available = allInputs.get(key);
+            if (available < amount) {
+                throw new RuntimeException(
+                        "Expected at least %d of %s when pushing probability pattern, but only %d available"
+                                .formatted(amount, key, available));
+            }
+            inputSink.pushInput(key, amount);
+            allInputs.remove(key, amount);
+        }
     }
 
     @Override
     public PatternDetailsTooltip getTooltip(Level level, TooltipFlag flags) {
         var tooltip = new PatternDetailsTooltip(PatternDetailsTooltip.OUTPUT_TEXT_PRODUCES);
-        tooltip.addInputsAndOutputs(this);
-        tooltip.addProperty(Component.translatable("probabilitypattern.tooltip.success_probability"),
-                Component.literal("%.2f%%".formatted(encoded.successProbability() * 100.0)));
-        tooltip.addProperty(Component.translatable("probabilitypattern.tooltip.alpha"),
-                Component.literal("%.2f%%".formatted(encoded.alpha() * 100.0)));
-        tooltip.addProperty(Component.translatable("probabilitypattern.tooltip.trials"),
-                Component.literal(Long.toString(sizing.attempts())));
-        tooltip.addProperty(Component.translatable("probabilitypattern.tooltip.distribution"),
-                Component.literal(sizing.distribution().serializedName()));
-        tooltip.addProperty(Component.translatable("probabilitypattern.tooltip.failure_probability"),
-                Component.literal("%.4f%%".formatted(sizing.underproductionRisk() * 100.0)));
+        for (var input : encoded.inputsPerAttempt()) {
+            tooltip.addInput(input);
+        }
+        tooltip.addOutput(encoded.output());
+        if (encoded.successProbability() < 1.0) {
+            tooltip.addProperty(
+                    Component.translatable("probabilitypattern.tooltip.success_probability"),
+                    Component.literal("%.0f%%".formatted(encoded.successProbability() * 100.0)));
+        }
         return tooltip;
     }
 
     public ProbabilitySizingResult sizing() {
-        return sizing;
+        var targetOutput = requestedOutputAmount != null ? requestedOutputAmount : encoded.output().amount();
+        var successes = Math.max(1, ceilDiv(targetOutput, encoded.output().amount()));
+        return ProbabilitySizing.planAttempts(
+                successes,
+                encoded.successProbability(),
+                encoded.alpha(),
+                encoded.smallSampleLimit());
     }
 
-    @Override
-    public int hashCode() {
-        return definition.hashCode();
+    public double successProbability() {
+        return encoded.successProbability();
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof StatisticalPatternDetails other && definition.equals(other.definition);
+    public StatisticalPatternDetails forRequest(long requestedOutputAmount) {
+        return new StatisticalPatternDetails((AEItemKey) getDefinition(), encoded, Math.max(1, requestedOutputAmount));
     }
 
-    private static final class Input implements IInput {
+    private static long ceilDiv(long numerator, long denominator) {
+        return (numerator + denominator - 1) / denominator;
+    }
+
+    private static final class Input implements IPatternDetails.IInput {
         private final GenericStack[] template;
         private final long multiplier;
 

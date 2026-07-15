@@ -41,6 +41,7 @@ neoForge {
 }
 
 dependencies {
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     implementation "org.appliedenergistics:appliedenergistics2:${ae2_version}"
 
     testImplementation platform('org.junit:junit-bom:5.10.2')
@@ -71,4 +72,11 @@ tasks.named('processResources', ProcessResources) {
     filesMatching('META-INF/neoforge.mods.toml') {
         expand replaceProperties
     }
+}
+
+
+tasks.named('compileJava', JavaCompile) {
+    options.compilerArgs += [
+        '-Amixin.refmap=probabilitypattern.refmap.json'
+    ]
 }

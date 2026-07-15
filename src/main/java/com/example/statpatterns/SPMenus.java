@@ -3,9 +3,12 @@ package com.example.statpatterns;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import appeng.helpers.IPatternTerminalMenuHost;
+import appeng.menu.implementations.MenuTypeBuilder;
+import appeng.menu.implementations.MenuTypeBuilder.MenuFactory;
 
 import com.example.statpatterns.terminal.ProbabilityPatternTerminalMenu;
 
@@ -15,7 +18,11 @@ public final class SPMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<ProbabilityPatternTerminalMenu>> PROBABILITY_PATTERN_TERMINAL =
             MENUS.register("probability_pattern_terminal",
-                    () -> IMenuTypeExtension.create(ProbabilityPatternTerminalMenu::new));
+                    () -> MenuTypeBuilder
+                            .create((MenuFactory<ProbabilityPatternTerminalMenu, IPatternTerminalMenuHost>)
+                                    ProbabilityPatternTerminalMenu::new,
+                                    IPatternTerminalMenuHost.class)
+                            .build(ProbabilityPatternMod.id("probability_pattern_terminal")));
 
     private SPMenus() {
     }
