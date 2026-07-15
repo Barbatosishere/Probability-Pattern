@@ -10,6 +10,8 @@ authors="ZincG"
 description='''
 AE2 addon that adds statistical processing patterns for probabilistic production chains.
 '''
+[[mixins]]
+config="${mod_id}.mixins.json"
 
 [[dependencies.${mod_id}]]
     modId="neoforge"

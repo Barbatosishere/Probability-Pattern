@@ -3,6 +3,7 @@ package com.tz.statpatterns;
 import java.util.List;
 
 import com.mojang.logging.LogUtils;
+import com.tz.statpatterns.api.ids.Components;
 import com.tz.statpatterns.core.definition.SPBlockEntities;
 import com.tz.statpatterns.core.definition.SPBlocks;
 import com.tz.statpatterns.core.definition.SPItems;
@@ -24,11 +25,13 @@ public final class ProbabilityPatternMod {
                 id("part/probability_pattern_terminal_off"),
                 id("part/probability_pattern_terminal_on")));
 
-        SPComponents.register(modEventBus);
+
         SPParts.init();
         SPBlocks.DR.register(modEventBus);
         SPBlockEntities.DR.register(modEventBus);
         SPItems.DR.register(modEventBus);
+        Components.DR.register(modEventBus);
+
         SPMenus.register(modEventBus);
         SPCreativeTabs.register(modEventBus);
 

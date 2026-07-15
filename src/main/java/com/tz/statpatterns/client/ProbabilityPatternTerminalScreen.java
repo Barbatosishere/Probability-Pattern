@@ -12,19 +12,16 @@ import com.tz.statpatterns.menu.ProbabilityPatternTerminalMenu;
 
 public class ProbabilityPatternTerminalScreen extends PatternEncodingTermScreen<ProbabilityPatternTerminalMenu> {
     private static final int PROBABILITY_FIELD_WIDTH = 58;
-    private static final int BATCH_FIELD_WIDTH = 48;
     private static final int FIELD_HEIGHT = 14;
     private static final int TITLE_TO_PROBABILITY_GAP = 16;
     private static final int LABEL_TO_FIELD_GAP = 4;
-    private static final int FIELD_TO_LABEL_GAP = 10;
     private static final int INVENTORY_TITLE_GAP = 12;
 
     private final Inventory playerInventory;
     private EditBox probabilityField;
-    private EditBox batchField;
 
     public ProbabilityPatternTerminalScreen(ProbabilityPatternTerminalMenu menu, Inventory playerInventory,
-            Component title, ScreenStyle style) {
+                                            Component title, ScreenStyle style) {
         super(menu, playerInventory, title, style);
         this.playerInventory = playerInventory;
     }
@@ -48,22 +45,6 @@ public class ProbabilityPatternTerminalScreen extends PatternEncodingTermScreen<
             }
         });
         addRenderableWidget(probabilityField);
-
-        batchField = new EditBox(font,
-                batchFieldX(),
-                fieldY(),
-                BATCH_FIELD_WIDTH,
-                FIELD_HEIGHT,
-                Component.translatable("gui.probabilitypattern.batch"));
-        batchField.setMaxLength(7);
-        batchField.setValue(Long.toString(menu.getTargetBatch()));
-        batchField.setResponder(value -> {
-            var parsed = parseBatch(value);
-            if (parsed != null) {
-                menu.setTargetBatch(parsed);
-            }
-        });
-        addRenderableWidget(batchField);
     }
 
     @Override
@@ -72,20 +53,12 @@ public class ProbabilityPatternTerminalScreen extends PatternEncodingTermScreen<
             probabilityField.setX(probabilityFieldX());
             probabilityField.setY(fieldY());
         }
-        if (batchField != null) {
-            batchField.setX(batchFieldX());
-            batchField.setY(fieldY());
-        }
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         var probabilityLabel = Component.translatable("gui.probabilitypattern.probability");
         guiGraphics.drawString(font, probabilityLabel, probabilityLabelX(), labelY(), 0x404040, false);
         probabilityField.render(guiGraphics, mouseX, mouseY, partialTick);
-
-        var batchLabel = Component.translatable("gui.probabilitypattern.batch");
-        guiGraphics.drawString(font, batchLabel, batchLabelX(), labelY(), 0x404040, false);
-        batchField.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
     @Override
@@ -97,12 +70,6 @@ public class ProbabilityPatternTerminalScreen extends PatternEncodingTermScreen<
                 probabilityField.setValue(current);
             }
         }
-        if (batchField != null && !batchField.isFocused()) {
-            var current = Long.toString(menu.getTargetBatch());
-            if (!current.equals(batchField.getValue())) {
-                batchField.setValue(current);
-            }
-        }
     }
 
     private int probabilityLabelX() {
@@ -112,15 +79,6 @@ public class ProbabilityPatternTerminalScreen extends PatternEncodingTermScreen<
     private int probabilityFieldX() {
         var label = Component.translatable("gui.probabilitypattern.probability");
         return probabilityLabelX() + font.width(label) + LABEL_TO_FIELD_GAP;
-    }
-
-    private int batchLabelX() {
-        return probabilityFieldX() + PROBABILITY_FIELD_WIDTH + FIELD_TO_LABEL_GAP;
-    }
-
-    private int batchFieldX() {
-        var label = Component.translatable("gui.probabilitypattern.batch");
-        return batchLabelX() + font.width(label) + LABEL_TO_FIELD_GAP;
     }
 
     private int fieldY() {
@@ -159,17 +117,6 @@ public class ProbabilityPatternTerminalScreen extends PatternEncodingTermScreen<
         try {
             var parsed = Double.parseDouble(value.trim());
             if (parsed > 0.0 && parsed <= 1.0) {
-                return parsed;
-            }
-        } catch (NumberFormatException ignored) {
-        }
-        return null;
-    }
-
-    private static Long parseBatch(String value) {
-        try {
-            var parsed = Long.parseLong(value.trim());
-            if (parsed > 0) {
                 return parsed;
             }
         } catch (NumberFormatException ignored) {

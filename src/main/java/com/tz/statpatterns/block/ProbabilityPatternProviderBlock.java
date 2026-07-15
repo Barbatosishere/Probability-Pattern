@@ -23,8 +23,7 @@ import appeng.util.Platform;
 
 public class ProbabilityPatternProviderBlock extends AEBaseEntityBlock<ProbabilityPatternProviderBlockEntity> {
 
-    public static final EnumProperty<PushDirection> PUSH_DIRECTION = EnumProperty.create("push_direction",
-            PushDirection.class);
+    public static final EnumProperty<PushDirection> PUSH_DIRECTION = EnumProperty.create("push_direction", PushDirection.class);
 
     public ProbabilityPatternProviderBlock() {
         super(metalProps());
