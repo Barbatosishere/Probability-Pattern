@@ -1,156 +1,169 @@
-# Probability Pattern for AE2
+# Probability Pattern for AE2 — 概率样板
 
 ![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-blue?logo=minecraft)
 ![NeoForge](https://img.shields.io/badge/NeoForge-21.1.169-orange)
 ![AE2](https://img.shields.io/badge/AE2-19.2.0-green)
 ![Java](https://img.shields.io/badge/Java-21-red)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-**Probability Pattern for AE2** is an independent NeoForge addon for [Applied Energistics 2](https://github.com/AppliedEnergistics/Applied-Energistics-2) on Minecraft 1.21.1. It adds **probability-based encoded patterns** for machines with probabilistic outcomes.
+> **English version**: [README_en.md](README_en.md)
 
-When a machine has a **success rate** (e.g., an 80% chance of producing the target item per craft), ordinary patterns cannot handle the uncertainty. This mod uses **binomial distribution** from statistics to calculate how many attempts are needed to reach the target output with sufficient confidence.
+**Probability Pattern for AE2** 是 [Applied Energistics 2](https://github.com/AppliedEnergistics/Applied-Energistics-2) 的一个独立 NeoForge 扩展 Mod，为 Minecraft 1.21.1 增加"概率样板"功能。
+
+当机器有**成功率**的概念（例如每次合成有 80% 概率产出目标物品）时，普通样板无法处理这种不确定性。这个 Mod 使用统计学中的**二项分布**来计算需要多少次尝试才能以足够高的置信度达到目标产出量。
 
 ---
 
-## Core Principle
+## 核心原理
 
-The probability pattern models a machine's probabilistic output as a **binomial process**:
+概率样板将机器的随机产出建模为**二项过程**：
 
-| Parameter | Meaning | Default |
-|-----------|---------|---------|
-| **Target amount** (N) | Desired final output quantity | — |
-| **Single-attempt success probability** (p) | Probability of success per attempt | 80% |
-| **Significance level** (α) | Allowed risk of underproduction | 5% |
+| 参数 | 含义 | 默认值 |
+|------|------|--------|
+| **目标数量** (N) | 你想要获得的最终产出数 | — |
+| **单次成功率** (p) | 每次尝试产出成功的概率 | 80% |
+| **显著性水平** (α) | 允许的产出不足风险 | 5% |
 
-The system automatically computes the **required number of attempts** such that the probability of producing fewer than the target amount does not exceed α.
+系统自动计算**所需尝试次数**，使得产出低于目标数量的概率不超过 α。
 
-### Computation Method
+### 计算方式
 
-- **Small targets** (N ≤ 30): Uses the exact binomial lower-tail probability
-- **Large targets** (N > 30): Uses a normal approximation for speed with sufficient accuracy
+- **小目标**（N ≤ 30）：使用精确的二项分布左尾概率计算
+- **大目标**（N > 30）：使用正态近似，计算速度快且精度足够
 
-### Example
+### 示例
 
-> **Target: 1000 outputs, single-attempt success probability 80%, α = 0.05**
+> **目标：1000 个产物，单次成功率 80%，α = 0.05**
 >
-> The normal approximation calculates that **1286 attempts** are needed. At this point, the probability of producing fewer than 1000 items is ≤ 5%.
+> 正态近似计算出需要 **1286 次尝试**，此时产出不足 1000 个的概率 ≤ 5%。
 
 ---
 
-## Usage
+## 使用方法
 
-### 1. Craft the terminal
+### 1. 合成终端
 
-Craft a `probabilitypattern:probability_pattern_terminal`, place it, and open its GUI.
+合成 `probabilitypattern:probability_pattern_terminal`（概率样板终端），放置并打开。
 
-### 2. Encode a pattern
+### 2. 编码样板
 
-| Step | Action |
-|------|--------|
-| ① | Place **per-attempt** input samples into the 3×3 grid |
-| ② | Place the target output item into the output slot |
-| ③ | Place a blank `probabilitypattern:probability_pattern` into the pattern slot |
-| ④ | Adjust target amount, success probability, and α |
-| ⑤ | Press encode to generate the probability pattern |
+| 步骤 | 说明 |
+|------|------|
+| ① 放入材料 | 将**单次尝试**所需的材料样本放入 3×3 输入格 |
+| ② 放入产物 | 将目标产物放入输出槽 |
+| ③ 放入空白样板 | 将空白 `probabilitypattern:probability_pattern` 放入样板槽 |
+| ④ 调整参数 | 设置目标数量、成功率和 α |
+| ⑤ 点击编码 | 生成概率样板 |
 
-### 3. Terminal controls
+### 3. 终端控件
 
-The probability pattern encoding interface adds three controls to the standard AE2 pattern terminal:
+概率样板的编码界面在 AE2 标准图案终端的基础上增加了三个小控件：
 
-- **p%** — Single-attempt success probability, default `80%`
-- **a%** — Significance level (allowed underproduction risk), default `5%`
-- **N** — Target output quantity
+- **p%** — 单次尝试成功率，默认 `80%`
+- **a%** — 显著性水平（允许的产出不足风险），默认 `5%`
+- **N** — 目标产出数量
 
-The interface displays the planned attempt count in real time. If parameters are invalid, a red error message is shown.
+界面会实时显示计划尝试次数（Plan），如果参数无效则显示红色错误提示。
 
 ---
 
-## Mod Info
+## 模组信息
 
-| Item | Value |
-|------|-------|
+| 项目 | 值 |
+|------|-----|
 | Mod ID | `probabilitypattern` |
-| Mod Name | Probability Pattern for AE2 |
-| Current Version | 0.1.0 |
-| Group ID | `com.example.statpatterns` |
+| 模组名称 | Probability Pattern for AE2 |
+| 当前版本 | 0.1.0 |
+| 开发群组 | `com.tz.statpatterns` |
 
-### Dependencies
+### 依赖
 
-| Dependency | Version |
-|------------|---------|
+| 依赖 | 版本 |
+|------|------|
 | Minecraft | 1.21.1 |
 | NeoForge | ≥ 21.1.169 |
 | Applied Energistics 2 | ≥ 19.x |
 
 ---
 
-## Build
+## 构建
 
-Requires **Java 21** to run Gradle (Java 25 currently fails during the Gradle/Groovy configuration phase).
+需要 **Java 21** 来运行 Gradle。
 
-### Option 1: Build against local AE2 source (recommended for debugging)
+### 方式一：针对发布版本构建
 
-The project uses a Gradle composite build. The `includeBuild('..')` directive in `settings.gradle` substitutes the AE2 dependency with a checked-out AE2 source in the parent directory:
+在 `gradle.properties` 中设置 `ae2_version` 为需要的版本号，然后运行：
 
 ```powershell
-# Run from the AE2 source root
+.\gradlew.bat build
+```
+
+### 方式二：针对本地 AE2 源码构建（推荐调试）
+
+将 AE2 源码放在上级目录，在 `settings.gradle` 中添加 `includeBuild(''..'')`，然后运行：
+
+```powershell
 .\gradlew.bat -p statistical-patterns-addon build
 ```
 
-### Option 2: Build against a published AE2 release
+---
 
-Remove the `includeBuild('..')` block from `settings.gradle`, then set `ae2_version` in `gradle.properties` to the desired version.
+## 已实现功能
+
+- ✅ 独立的 NeoForge 模组元数据和 Gradle 构建
+- ✅ AE2 自定义编码样板物品（`probabilitypattern:probability_pattern`）
+- ✅ 持久化且网络同步的概率样板数据组件
+- ✅ 精确二项分布与正态近似计算逻辑
+- ✅ AE2 图案终端编码器集成
+- ✅ Crafting CPU 重试按钮：取消卡住的剩余任务，将未完成的产出重新提交给 AE2 合成规划器
+- ✅ 概率样板供应器方块和线缆部件
+
+## 待实现功能
+
+- ⬜ 存储/网络层面追踪观察到的实际返还数量
 
 ---
 
-## Implemented Features
-
-- ✅ Independent NeoForge mod metadata and Gradle build
-- ✅ AE2 custom encoded pattern item (`probabilitypattern:probability_pattern`)
-- ✅ Persistent and network-synced data component for probability patterns
-- ✅ Exact binomial distribution and normal approximation sizing logic
-- ✅ Unit tests for the 1000@80% example
-- ✅ AE2 pattern terminal encoder integration
-- ✅ Crafting CPU retry button: cancels stuck remainder tasks and resubmits unfinished output to the AE2 crafting planner
-
-## Planned Features
-
-- ⬜ Storage/network-level tracking of observed returned quantities
-
----
-
-## Technical Architecture
+## 技术架构
 
 ```
-com.example.statpatterns
+com.tz.statpatterns
 ├── math/
-│   ├── ProbabilitySizing.java          # Core algorithm: computes required attempts
-│   ├── ProbabilitySizingResult.java     # Computation result record
-│   └── DistributionMode.java            # Distribution mode enum (exact binomial / normal approx)
+│   ├── ProbabilitySizing.java          # 核心算法：计算所需尝试次数
+│   ├── ProbabilitySizingResult.java     # 计算结果记录
+│   └── DistributionMode.java            # 分布模式枚举（精确二项/正态近似）
 ├── crafting/
-│   ├── StatisticalPatternDetails.java   # AE2 pattern detail implementation
-│   └── EncodedStatisticalPattern.java   # Encoded probability pattern data component
-├── terminal/
-│   ├── ProbabilityPatternTerminalBlock.java       # Block definition
-│   ├── ProbabilityPatternTerminalBlockEntity.java # Block entity
-│   └── ProbabilityPatternTerminalMenu.java        # Interaction menu
+│   ├── StatisticalPatternDetails.java   # AE2 样板详情实现
+│   └── EncodedStatisticalPattern.java   # 编码后概率样板的数据组件
+├── block/
+│   └── ProbabilityPatternProviderBlock.java  # 方块定义
+├── blockentity/crafting/
+│   └── ProbabilityPatternProviderBlockEntity.java  # 方块实体
+├── part/
+│   ├── ProbabilityPatternProviderPart.java    # 线缆附着供应器部件
+│   └── ProbabilityPatternTerminalPart.java    # 线缆附着终端部件
+├── menu/
+│   └── ProbabilityPatternTerminalMenu.java    # 交互菜单
 ├── client/
-│   ├── ProbabilityPatternClient.java              # Client-side registration
-│   └── ProbabilityPatternTerminalScreen.java      # Encoding screen rendering
-├── ProbabilityPatternMod.java          # Mod entry point
-├── SPComponents.java                   # Data component registration
-├── SPItems.java                        # Item registration
-├── SPBlocks.java                       # Block registration
-├── SPBlockEntities.java                # Block entity registration
-├── SPMenus.java                        # Menu registration
-└── SPCreativeTabs.java                 # Creative mode tab
+│   ├── ProbabilityPatternClient.java          # 客户端注册
+│   └── ProbabilityPatternTerminalScreen.java  # 编码界面渲染
+├── core/definition/
+│   ├── SPBlocks.java                   # 方块注册
+│   ├── SPBlockEntities.java            # 方块实体注册
+│   ├── SPItems.java                    # 物品注册
+│   └── SPParts.java                    # 部件注册
+├── init/
+│   └── InitCapabilityProviders.java    # Capability 注册
+├── api/ids/                            # 资源路径常量
+├── integration/jei/                    # JEI 集成
+├── ProbabilityPatternMod.java          # Mod 主入口
+├── SPComponents.java                   # 数据组件注册
+├── SPMenus.java                        # 菜单注册
+└── SPCreativeTabs.java                 # 创造模式标签页
 ```
 
 ---
 
-## License
+## 许可证
 
-This project is open-source under the [LGPL-3.0](LICENSE) license.
-
----
-
-> **🇨🇳 中文版本**: 请参阅 [README_zh.md](README_zh.md) — the Chinese version of this document is available at `README_zh.md` in the same repository.
+本项目基于 [MIT](LICENSE) 许可证开源。
