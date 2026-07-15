@@ -2,7 +2,10 @@
   "required": true,
   "package": "com.tz.statpatterns.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": ["CraftingServiceMixin"],
+  "mixins": [
+    "CraftingPlanSummaryDynamicFixMixin",
+    "CraftingServiceMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   },

@@ -14,12 +14,15 @@ import appeng.crafting.execution.InputTemplate;
 import appeng.crafting.inv.ChildCraftingSimulationState;
 import appeng.crafting.inv.CraftingSimulationState;
 import appeng.crafting.inv.ICraftingInventory;
+import com.tz.statpatterns.crafting.StatisticalPatternDetails;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.tz.statpatterns.me.ProbMaterialVerifier.verifySingle;
 
 public class SPCraftingTreeNode {
 
@@ -156,8 +159,6 @@ public class SPCraftingTreeNode {
             long extracted = CraftingCpuHelper.extractTemplates(inv, template, requestedAmount);
 
             if (extracted > 0) {
-                // TODO: we should keep track of which items we extracted to make sure the CPU uses exactly those when
-                // TODO: it processes the job.
                 requestedAmount -= extracted;
                 addContainerItems(template.key(), extracted, containerItems);
 
@@ -214,13 +215,13 @@ public class SPCraftingTreeNode {
                             .map(GenericStack::toString)
                             .collect(Collectors.joining(", "));
                     String errorMessage = """
-                            Unexpected error in the crafting calculation: can't find created items.
-                            This is an AE2 bug, please report it, with the following important information:
+                        Unexpected error in the crafting calculation: can't find created items.
+                        This is an AE2 bug, please report it, with the following important information:
 
-                            - Found none of %s. Remaining request: %d of %d*%d.
-                            - Tried crafting %d times the pattern %s.
-                            - Pattern outputs: %s.
-                            """.formatted(what, totalRequestedItems, requestedAmount, amount, times, pattern, outputs);
+                        - Found none of %s. Remaining request: %d of %d*%d.
+                        - Tried crafting %d times the pattern %s.
+                        - Pattern outputs: %s.
+                        """.formatted(what, totalRequestedItems, requestedAmount, amount, times, pattern, outputs);
                     throw new UnsupportedOperationException(errorMessage);
                 }
             }

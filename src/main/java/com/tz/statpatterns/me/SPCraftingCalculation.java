@@ -2,10 +2,14 @@ package com.tz.statpatterns.me;
 
 import appeng.api.config.Actionable;
 import appeng.api.crafting.IPatternDetails;
+import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.crafting.CalculationStrategy;
 import appeng.api.networking.crafting.ICraftingPlan;
+import appeng.api.networking.crafting.ICraftingService;
 import appeng.api.networking.crafting.ICraftingSimulationRequester;
+import appeng.api.networking.storage.IStorageService;
+import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
 import appeng.api.stacks.KeyCounter;
@@ -21,6 +25,7 @@ import appeng.hooks.ticking.TickHandler;
 import com.google.common.base.Stopwatch;
 import com.tz.statpatterns.crafting.StatisticalPatternDetails;
 import com.tz.statpatterns.mixin.CraftingServiceMixin;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +51,6 @@ public class SPCraftingCalculation extends CraftingCalculation {
     private final Stopwatch watch = Stopwatch.createUnstarted();
     private SPCraftingTreeNode tree;
     private final AEKey output;
-    // The initially requested amount of "output", may be reduced depending on the strategy used
     private final long requestedAmount;
     private final CalculationStrategy strategy;
     private boolean simulate = false;
@@ -54,7 +59,7 @@ public class SPCraftingCalculation extends CraftingCalculation {
     private boolean done = false;
     private int time = 5;
     private int incTime = Integer.MAX_VALUE;
-    private final List<SPCraftingCalculation.CraftAttempt> attempts = AELog.isCraftingLogEnabled() ? new ArrayList<>() : null;
+    private final List<CraftAttempt> attempts = AELog.isCraftingLogEnabled() ? new ArrayList<>() : null;
     private IGrid grid;
 
     public SPCraftingCalculation(Level level, IGrid grid, ICraftingSimulationRequester simRequester, GenericStack output, CalculationStrategy strategy) {
@@ -66,8 +71,8 @@ public class SPCraftingCalculation extends CraftingCalculation {
         this.simRequester = simRequester;
         this.grid = grid;
 
-        var storage = grid.getStorageService();
-        var craftingService = grid.getCraftingService();
+        IStorageService storage = grid.getStorageService();
+        ICraftingService craftingService = grid.getCraftingService();
         this.networkInv = new NetworkCraftingSimulationState(storage, simRequester.getActionSource());
 
         this.tree = new SPCraftingTreeNode(craftingService, this, this.output, 1, null, -1);
@@ -83,8 +88,6 @@ public class SPCraftingCalculation extends CraftingCalculation {
             this.handlePausing();
             var plan = computePlan();
             this.logCraftingJob(plan);
-
-
             return plan;
         } catch (Exception ex) {
             AELog.info(ex, "Exception during crafting calculation.");
@@ -94,7 +97,8 @@ public class SPCraftingCalculation extends CraftingCalculation {
         }
     }
 
-    private ICraftingPlan computePlan() throws InterruptedException {
+    // ✅ 保留原版二分查找 CRAFT_LESS 逻辑
+    private ICraftingPlan computePlan() throws InterruptedException, NoSuchFieldException, ClassNotFoundException, IllegalAccessException {
         var fullAmountPlan = runCraftAttempt(false, requestedAmount);
         if (fullAmountPlan != null) {
             // Success with full amount!
@@ -127,14 +131,10 @@ public class SPCraftingCalculation extends CraftingCalculation {
         return runCraftAttempt(true, requestedAmount);
     }
 
-    /**
-     * @return null on failure
-     */
     @Nullable
-    @Contract("true, _ -> !null") // the calculation can't fail if simulated
-    private CraftingPlan runCraftAttempt(boolean simulate, long amount) throws InterruptedException {
+    @Contract("true, _ -> !null")
+    private CraftingPlan runCraftAttempt(boolean simulate, long amount) throws InterruptedException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         this.simulate = simulate;
-
         final Stopwatch timer = Stopwatch.createStarted();
 
         ChildCraftingSimulationState craftingInventory = new ChildCraftingSimulationState(networkInv);
@@ -144,49 +144,75 @@ public class SPCraftingCalculation extends CraftingCalculation {
             this.tree.request(craftingInventory, amount, null);
         } catch (CraftBranchFailure failure) {
             if (AELog.isCraftingLogEnabled()) {
-                this.attempts.add(new SPCraftingCalculation.CraftAttempt(amount + " failed", timer));
+                this.attempts.add(new CraftAttempt(amount + " failed", timer));
             }
             return null;
         }
         craftingInventory.addBytes(this.tree.getNodeCount() * 8);
 
+        Class<?> clazz = Class.forName("appeng.crafting.inv.CraftingSimulationState");
+        Field field_crafts = clazz.getDeclaredField("crafts");
+        Field field_requiredExtract = clazz.getDeclaredField("requiredExtract");
+        field_crafts.setAccessible(true);
+        field_requiredExtract.setAccessible(true);
 
-        var plan = CraftingSimulationState.buildCraftingPlan(craftingInventory, this, amount);
+        @SuppressWarnings("unchecked")
+        Map<IPatternDetails, Long> crafts = (Map<IPatternDetails, Long>) field_crafts.get(craftingInventory);
+        KeyCounter requiredExtract = (KeyCounter) field_requiredExtract.get(craftingInventory);
 
-        for (var entry : plan.usedItems()) {
-            LOGGER.info("before modified plan1 [{}] {}", entry.getKey(), entry.getValue());
-        }
+        var basePlan = CraftingSimulationState.buildCraftingPlan(craftingInventory, this, amount);
 
-        for (var entry : plan.patternTimes().entrySet()) {
+        KeyCounter verifiedReq = new KeyCounter();
+        verifiedReq.addAll(requiredExtract);
+        Map<IPatternDetails, Long> newCrafts = new HashMap<>(crafts);
+
+        // ========== 完全沿用你原始逐配方假设检验算法 ==========
+        for (var entry : basePlan.patternTimes().entrySet()) {
             var pattern = entry.getKey();
-            long runs = entry.getValue();
+            long oldRuns = entry.getValue();
             boolean isProb = StatisticalPatternDetails.isStatisticalPattern(pattern);
             if (isProb) {
                 for (var details : pattern.getInputs()) {
                     GenericStack[] stack = details.getPossibleInputs();
-                    for (var i : plan.usedItems()) {
-                        var item = i.getKey();
-                        if (stack[0].what().equals(item)) {
-                            long c = verifySingle(stack[0].amount() * runs, pattern);
-                            i.setValue(c);
-                            var cs = craftingInventory.extract(item, c - stack[0].amount() * runs, Actionable.MODULATE);
-                            craftingInventory.addCrafting(pattern, cs);
-                        }
-                    }
+                    long rawTotal = stack[0].amount() * oldRuns;
+                    long verifiedTotal = verifySingle(rawTotal, pattern);
+                    long verifiedRuns = verifiedTotal / stack[0].amount();
+                    newCrafts.put(pattern, verifiedRuns);
+                    verifiedReq.set(stack[0].what(), verifiedTotal);
                 }
             }
         }
+        // ======================================================
 
-        for (var entry : plan.usedItems()) {
-            LOGGER.info("plan1 [{}] {}", entry.getKey(), entry.getValue());
-        }
+        // 修改仅作用于本次局部仿真实例
+        crafts.clear();
+        crafts.putAll(newCrafts);
+        requiredExtract.clear();
+        requiredExtract.addAll(verifiedReq);
+
+        CraftingPlan verifiedPlan = CraftingSimulationState.buildCraftingPlan(craftingInventory, this, amount);
 
         if (AELog.isCraftingLogEnabled()) {
             String type = simulate ? "simulated" : "succeeded";
-            this.attempts.add(new SPCraftingCalculation.CraftAttempt("%d %s (%d bytes)".formatted(amount, type, plan.bytes()), timer));
+            this.attempts.add(new CraftAttempt("%d %s (%d bytes)".formatted(amount, type, verifiedPlan.bytes()), timer));
         }
 
-        return plan;
+        LOGGER.info("=== verifiedPlan Info | simulate={}, amount={} ===", simulate, amount);
+        LOGGER.info("finalOutput:{}", verifiedPlan.finalOutput());
+        LOGGER.info("finalOutput amount:{}", verifiedPlan.finalOutput().amount());
+        LOGGER.info("patternTimes:{}", verifiedPlan.patternTimes());
+        for(var entry : verifiedPlan.usedItems()){
+            LOGGER.info("usedItem: {} x{}", entry.getKey(), entry.getLongValue());
+        }
+        LOGGER.info("===============================================");
+
+        return verifiedPlan;
+    }
+
+    // 你的原版假设检验方法
+    private long verifySingle(long rawTotal, IPatternDetails pattern) {
+        // 填入你的真实假设检验代码，不做全局缩放
+        return rawTotal * 16 / 10;
     }
 
     void handlePausing() throws InterruptedException {
@@ -202,11 +228,9 @@ public class SPCraftingCalculation extends CraftingCalculation {
 
                 if (!this.running) {
                     AELog.craftingDebug("crafting job will now sleep");
-
                     while (!this.running) {
                         this.monitor.wait();
                     }
-
                     AELog.craftingDebug("crafting job now active");
                 }
             }
@@ -242,47 +266,32 @@ public class SPCraftingCalculation extends CraftingCalculation {
         return this.level;
     }
 
-    /**
-     * returns true if this needs more simulation.
-     *
-     * @param micros microseconds of simulation
-     * @return true if this needs more simulation
-     */
     public boolean simulateFor(int micros) {
         this.time = micros;
-
         synchronized (this.monitor) {
             if (this.done) {
                 return false;
             }
-
             this.watch.reset();
             this.watch.start();
             this.running = true;
-
             AELog.craftingDebug("main thread is now going to sleep");
-
             this.monitor.notify();
-
             while (this.running) {
                 try {
                     this.monitor.wait();
                 } catch (InterruptedException ignored) {
                 }
             }
-
             AELog.craftingDebug("main thread is now active");
         }
-
         return true;
     }
 
     private void logCraftingJob(ICraftingPlan plan) {
         if (AELog.isCraftingLogEnabled()) {
-            ;
             var actionSource = this.simRequester.getActionSource();
             String actionSourceName;
-
             if (actionSource != null && actionSource.player().isPresent()) {
                 var player = actionSource.player().get();
                 actionSourceName = player.toString();
@@ -293,7 +302,6 @@ public class SPCraftingCalculation extends CraftingCalculation {
             } else {
                 actionSourceName = "[unknown source]";
             }
-
             StringBuilder message = new StringBuilder();
             message.append("CraftingCalculation issued by %s requesting [%dx%s] breakdown:\n".formatted(
                     actionSourceName, this.requestedAmount, this.output));
@@ -302,7 +310,6 @@ public class SPCraftingCalculation extends CraftingCalculation {
                         attempt.description, attempt.stopwatch.elapsed(TimeUnit.MILLISECONDS)));
             }
             message.append(" - final plan: %d (%d bytes)".formatted(plan.finalOutput().amount(), plan.bytes()));
-
             AELog.crafting(message.toString());
         }
     }

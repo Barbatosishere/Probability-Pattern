@@ -52,7 +52,7 @@ public abstract class CraftingServiceMixin {
             long amount,
             CalculationStrategy strategy
     ) {
-        LOGGER.info("[CRAFT MIXIN] Replace calculation job | target: {} x {}", what, amount);
+        //LOGGER.info("[CRAFT MIXIN] Replace calculation job | target: {} x {}", what, amount);
         GenericStack requestStack = new GenericStack(what, amount);
 
         if (level == null || simRequester == null) {
