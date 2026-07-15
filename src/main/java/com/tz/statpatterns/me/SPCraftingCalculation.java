@@ -158,14 +158,24 @@ public class SPCraftingCalculation extends CraftingCalculation {
             long runs = entry.getValue();
             boolean isProb = StatisticalPatternDetails.isStatisticalPattern(pattern);
             if (isProb) {
+                // 计算目标产出总量 = 每轮产出 × 执行次数
+                long outputPerRun = 1;
+                var outputs = pattern.getOutputs();
+                if (!outputs.isEmpty()) {
+                    outputPerRun = outputs.get(0).amount();
+                }
+                long totalOutput = runs * outputPerRun;
+                long safeAttempts = verifySingle(totalOutput, pattern);
                 for (var details : pattern.getInputs()) {
                     GenericStack[] stack = details.getPossibleInputs();
+                    long multiplier = details.getMultiplier();
+                    long baseAmount = multiplier * runs;
+                    long adjustedAmount = multiplier * safeAttempts;
                     for (var i : plan.usedItems()) {
                         var item = i.getKey();
-                        if (stack[0].what().equals(item)) {
-                            long c = verifySingle(stack[0].amount() * runs, pattern);
-                            i.setValue(c);
-                            craftingInventory.extract(item, c - stack[0].amount() * runs, Actionable.MODULATE);
+                        if (stack[0].what().equals(item) && i.getLongValue() == baseAmount) {
+                            i.setValue(adjustedAmount);
+                            craftingInventory.extract(item, adjustedAmount - baseAmount, Actionable.MODULATE);
                         }
                     }
                 }
