@@ -8,7 +8,7 @@ import net.minecraft.world.entity.player.Inventory;
 import appeng.client.gui.me.items.PatternEncodingTermScreen;
 import appeng.client.gui.style.ScreenStyle;
 
-import com.tz.statpatterns.menu.ProbabilityPatternTerminalMenu;
+import com.tz.statpatterns.terminal.ProbabilityPatternTerminalMenu;
 
 public class ProbabilityPatternTerminalScreen extends PatternEncodingTermScreen<ProbabilityPatternTerminalMenu> {
     private static final int PROBABILITY_FIELD_WIDTH = 58;
@@ -21,7 +21,7 @@ public class ProbabilityPatternTerminalScreen extends PatternEncodingTermScreen<
     private EditBox probabilityField;
 
     public ProbabilityPatternTerminalScreen(ProbabilityPatternTerminalMenu menu, Inventory playerInventory,
-                                            Component title, ScreenStyle style) {
+            Component title, ScreenStyle style) {
         super(menu, playerInventory, title, style);
         this.playerInventory = playerInventory;
     }

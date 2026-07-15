@@ -1,4 +1,4 @@
-package com.example.statpatterns.network;
+package com.tz.statpatterns.network;
 
 import org.jetbrains.annotations.Nullable;
 

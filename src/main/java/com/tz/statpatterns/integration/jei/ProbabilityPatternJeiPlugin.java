@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+import com.tz.statpatterns.ProbabilityPatternMod;
+import com.tz.statpatterns.client.ProbabilityPatternTerminalScreen;
+import com.tz.statpatterns.core.definition.SPMenus;
+import com.tz.statpatterns.terminal.ProbabilityPatternTerminalMenu;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -29,10 +33,6 @@ import appeng.api.stacks.GenericStack;
 import appeng.integration.modules.itemlists.DropTargets;
 import appeng.integration.modules.itemlists.EncodingHelper;
 
-import com.tz.statpatterns.ProbabilityPatternMod;
-import com.tz.statpatterns.SPMenus;
-import com.tz.statpatterns.client.ProbabilityPatternTerminalScreen;
-import com.tz.statpatterns.menu.ProbabilityPatternTerminalMenu;
 
 @JeiPlugin
 public class ProbabilityPatternJeiPlugin implements IModPlugin {
@@ -67,7 +67,7 @@ public class ProbabilityPatternJeiPlugin implements IModPlugin {
 
         @Override
         public IRecipeTransferError transferRecipe(ProbabilityPatternTerminalMenu menu, Object recipe,
-                IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer) {
+                                                   IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer) {
             var inputs = collectInputs(recipeSlots);
             var outputs = collectOutputs(recipeSlots);
             if (inputs.isEmpty() || outputs.isEmpty()) {
@@ -199,7 +199,7 @@ public class ProbabilityPatternJeiPlugin implements IModPlugin {
             implements IGhostIngredientHandler<ProbabilityPatternTerminalScreen> {
         @Override
         public <I> List<Target<I>> getTargetsTyped(ProbabilityPatternTerminalScreen screen,
-                ITypedIngredient<I> ingredient, boolean doStart) {
+                                                   ITypedIngredient<I> ingredient, boolean doStart) {
             var itemStack = ingredient.getItemStack().orElse(ItemStack.EMPTY);
             if (itemStack.isEmpty()) {
                 return List.of();

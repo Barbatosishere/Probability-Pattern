@@ -1,17 +1,15 @@
 package com.tz.statpatterns.client;
 
+import com.tz.statpatterns.core.definition.SPMenus;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 import appeng.client.gui.style.StyleManager;
 
 import com.tz.statpatterns.ProbabilityPatternMod;
-import com.tz.statpatterns.core.definition.SPItems;
-import com.tz.statpatterns.SPMenus;
-import com.tz.statpatterns.menu.ProbabilityPatternTerminalMenu;
+import com.tz.statpatterns.terminal.ProbabilityPatternTerminalMenu;
 
 @EventBusSubscriber(modid = ProbabilityPatternMod.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ProbabilityPatternClient {

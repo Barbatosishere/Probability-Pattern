@@ -1,4 +1,4 @@
-package com.example.statpatterns.network;
+package com.tz.statpatterns.network;
 
 import java.io.IOException;
 import java.util.Set;

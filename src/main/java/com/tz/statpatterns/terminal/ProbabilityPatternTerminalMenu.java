@@ -1,8 +1,11 @@
-package com.example.statpatterns.terminal;
+package com.tz.statpatterns.terminal;
 
 import java.util.ArrayList;
 import java.util.Objects;
 
+import com.tz.statpatterns.api.ids.Components;
+import com.tz.statpatterns.core.definition.SPMenus;
+import com.tz.statpatterns.crafting.StatisticalPatternDetails;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
@@ -16,9 +19,6 @@ import appeng.helpers.IPatternTerminalMenuHost;
 import appeng.menu.me.items.PatternEncodingTermMenu;
 import appeng.parts.encoding.EncodingMode;
 
-import com.example.statpatterns.SPComponents;
-import com.example.statpatterns.SPMenus;
-import com.example.statpatterns.crafting.StatisticalPatternDetails;
 
 public class ProbabilityPatternTerminalMenu extends PatternEncodingTermMenu {
     private static final String ACTION_SET_PROBABILITY = "setProbability";
@@ -53,7 +53,7 @@ public class ProbabilityPatternTerminalMenu extends PatternEncodingTermMenu {
     public void onSlotChange(Slot slot) {
         super.onSlotChange(slot);
         var encodedStack = patternHost.getLogic().getEncodedPatternInv().getStackInSlot(0);
-        var encoded = encodedStack.get(SPComponents.ENCODED_STATISTICAL_PATTERN.get());
+        var encoded = encodedStack.get(Components.ENCODED_STATISTICAL_PATTERN.get());
         if (encoded != null) {
             this.probability = encoded.successProbability();
         }

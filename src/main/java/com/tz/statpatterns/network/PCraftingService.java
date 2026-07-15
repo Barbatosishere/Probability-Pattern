@@ -1,4 +1,4 @@
-package com.example.statpatterns.network;
+package com.tz.statpatterns.network;
 
 import java.util.Collection;
 import java.util.ArrayList;
@@ -10,13 +10,13 @@ import java.util.concurrent.ThreadFactory;
 
 import com.google.common.collect.ImmutableSet;
 
+import com.tz.statpatterns.crafting.StatisticalPatternDetails;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.level.Level;
 
 import appeng.api.crafting.IPatternDetails;
 
-import com.example.statpatterns.crafting.StatisticalPatternDetails;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.crafting.CalculationStrategy;

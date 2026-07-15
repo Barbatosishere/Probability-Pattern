@@ -1,5 +1,7 @@
-package com.example.statpatterns.mixin;
+package com.tz.statpatterns.mixin;
 
+import com.tz.statpatterns.network.PCraftingService;
+import com.tz.statpatterns.network.ProbabilityCraftingContext;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -7,9 +9,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.crafting.ICraftingService;
 import appeng.crafting.CraftingTreeNode;
-
-import com.example.statpatterns.network.PCraftingService;
-import com.example.statpatterns.network.ProbabilityCraftingContext;
 
 /**
  * Intercepts IGrid.getCraftingService() inside CraftingTreeNode.buildChildPatterns()
