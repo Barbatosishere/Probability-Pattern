@@ -153,10 +153,6 @@ public class SPCraftingCalculation extends CraftingCalculation {
 
         var plan = CraftingSimulationState.buildCraftingPlan(craftingInventory, this, amount);
 
-        for (var entry : plan.usedItems()) {
-            LOGGER.info("before modified plan1 [{}] {}", entry.getKey(), entry.getValue());
-        }
-
         for (var entry : plan.patternTimes().entrySet()) {
             var pattern = entry.getKey();
             long runs = entry.getValue();
@@ -169,24 +165,18 @@ public class SPCraftingCalculation extends CraftingCalculation {
                         if (stack[0].what().equals(item)) {
                             long c = verifySingle(stack[0].amount() * runs, pattern);
                             i.setValue(c);
-                            var cs = craftingInventory.extract(item, c - stack[0].amount() * runs, Actionable.MODULATE);
-                            craftingInventory.addCrafting(pattern, cs);
+                            craftingInventory.extract(item, c - stack[0].amount() * runs, Actionable.MODULATE);
                         }
                     }
                 }
             }
         }
-
-        for (var entry : plan.usedItems()) {
-            LOGGER.info("plan1 [{}] {}", entry.getKey(), entry.getValue());
-        }
-
         if (AELog.isCraftingLogEnabled()) {
             String type = simulate ? "simulated" : "succeeded";
             this.attempts.add(new SPCraftingCalculation.CraftAttempt("%d %s (%d bytes)".formatted(amount, type, plan.bytes()), timer));
         }
 
-        return plan;
+        return CraftingSimulationState.buildCraftingPlan(craftingInventory, this, amount);
     }
 
     void handlePausing() throws InterruptedException {
