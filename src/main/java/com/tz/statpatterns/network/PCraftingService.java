@@ -1,7 +1,6 @@
 package com.tz.statpatterns.network;
 
 import java.util.Collection;
-import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,7 +9,6 @@ import java.util.concurrent.ThreadFactory;
 
 import com.google.common.collect.ImmutableSet;
 
-import com.tz.statpatterns.crafting.StatisticalPatternDetails;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.level.Level;
@@ -70,25 +68,7 @@ public final class PCraftingService implements ICraftingService {
 
     @Override
     public Collection<IPatternDetails> getCraftingFor(AEKey whatToCraft) {
-        var patterns = delegate.getCraftingFor(whatToCraft);
-        if (patterns.isEmpty()) {
-            return patterns;
-        }
-
-        var ctx = ProbabilityCraftingContext.current();
-        if (ctx == null || !ctx.what().equals(whatToCraft)) {
-            return patterns;
-        }
-
-        var result = new ArrayList<IPatternDetails>(patterns.size());
-        for (var pattern : patterns) {
-            if (pattern instanceof StatisticalPatternDetails spd) {
-                result.add(spd.forRequest(ctx.amount()));
-            } else {
-                result.add(pattern);
-            }
-        }
-        return result;
+        return delegate.getCraftingFor(whatToCraft);
     }
 
     @Override
@@ -153,4 +133,3 @@ public final class PCraftingService implements ICraftingService {
         return delegate.isRequestingAny();
     }
 }
-

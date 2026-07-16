@@ -56,7 +56,8 @@ public final class StatisticalPatternDetails extends AEProcessingPattern {
         return new StatisticalPatternDetails(what, encoded);
     }
 
-    public static ItemStack encode(List<GenericStack> sparseInputs, List<GenericStack> sparseOutputs, double successProbability, double alpha) {
+    public static ItemStack encode(List<GenericStack> sparseInputs, List<GenericStack> sparseOutputs,
+            double successProbability, double alpha) {
         var output = sparseOutputs.stream().filter(Objects::nonNull).findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("At least one output is required."));
         var compactInputs = sparseInputs.stream().filter(Objects::nonNull).toList();
@@ -115,27 +116,17 @@ public final class StatisticalPatternDetails extends AEProcessingPattern {
             allInputs.addAll(counter);
         }
 
-        var attemptsRemaining = sizing().attempts();
-        while (attemptsRemaining > 0) {
-            boolean canDoSingleAttempt = true;
-            for (var input : encoded.inputsPerAttempt()) {
-                var key = input.what();
-                var perAttemptAmt = input.amount();
-                if (allInputs.get(key) < perAttemptAmt) {
-                    canDoSingleAttempt = false;
-                    break;
-                }
+        for (var input : encoded.inputsPerAttempt()) {
+            var key = input.what();
+            var amount = Math.multiplyExact(input.amount(), sizing().attempts());
+            var available = allInputs.get(key);
+            if (available < amount) {
+                throw new RuntimeException(
+                        "Expected at least %d of %s when pushing probability pattern, but only %d available"
+                                .formatted(amount, key, available));
             }
-            if (!canDoSingleAttempt) break;
-
-            // 执行单次配方
-            for (var input : encoded.inputsPerAttempt()) {
-                var key = input.what();
-                var perAttemptAmt = input.amount();
-                inputSink.pushInput(key, perAttemptAmt);
-                allInputs.remove(key, perAttemptAmt);
-            }
-            attemptsRemaining--;
+            inputSink.pushInput(key, amount);
+            allInputs.remove(key, amount);
         }
     }
 
