@@ -2,10 +2,7 @@ package com.tz.statpatterns.network;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -27,43 +24,21 @@ import appeng.api.networking.crafting.ICraftingSimulationRequester;
 import appeng.api.networking.crafting.ICraftingSubmitResult;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
-import appeng.api.stacks.GenericStack;
 import appeng.api.storage.AEKeyFilter;
-import appeng.crafting.CraftingCalculation;
 
 public final class PCraftingService implements ICraftingService {
-    private static final ExecutorService CRAFTING_POOL;
 
-    static {
-        ThreadFactory factory = runnable -> {
-            var thread = new Thread(runnable, "Probability Pattern Crafting Calculator");
-            thread.setDaemon(true);
-            return thread;
-        };
-        CRAFTING_POOL = Executors.newCachedThreadPool(factory);
-    }
-
-    private final IGrid grid;
     private final ICraftingService delegate;
 
     public PCraftingService(IGrid grid, ICraftingService delegate) {
-        this.grid = grid;
         this.delegate = delegate;
     }
 
     @Override
-    public Future<ICraftingPlan> beginCraftingCalculation(Level level, ICraftingSimulationRequester simRequester,
-            AEKey craftWhat, long amount, CalculationStrategy strategy) {
-        if (level == null || simRequester == null) {
-            throw new IllegalArgumentException("Invalid Crafting Job Request");
-        }
-
-        var job = new CraftingCalculation(level, grid, simRequester, new GenericStack(craftWhat, amount), strategy);
-        return CRAFTING_POOL.submit(() -> {
-            try (var ignored = ProbabilityCraftingContext.push(craftWhat, amount)) {
-                return job.run();
-            }
-        });
+    public Future<ICraftingPlan> beginCraftingCalculation(Level level,
+            ICraftingSimulationRequester simRequester, AEKey craftWhat, long amount,
+            CalculationStrategy strategy) {
+        return delegate.beginCraftingCalculation(level, simRequester, craftWhat, amount, strategy);
     }
 
     @Override
@@ -98,8 +73,9 @@ public final class PCraftingService implements ICraftingService {
     }
 
     @Override
-    public ICraftingSubmitResult submitJob(ICraftingPlan job, @Nullable ICraftingRequester requestingMachine,
-            @Nullable ICraftingCPU target, boolean prioritizePower, IActionSource src) {
+    public ICraftingSubmitResult submitJob(ICraftingPlan job,
+            @Nullable ICraftingRequester requestingMachine, @Nullable ICraftingCPU target,
+            boolean prioritizePower, IActionSource src) {
         return delegate.submitJob(job, requestingMachine, target, prioritizePower, src);
     }
 

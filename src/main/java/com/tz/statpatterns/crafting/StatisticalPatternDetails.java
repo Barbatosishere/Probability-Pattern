@@ -48,10 +48,10 @@ public final class StatisticalPatternDetails extends AEProcessingPattern {
         }
         var encoded = what.get(Components.ENCODED_STATISTICAL_PATTERN.get());
         if (encoded == null) {
-            throw new IllegalArgumentException("Missing statistical pattern component.");
+            return null;
         }
         if (what.get(AEComponents.ENCODED_PROCESSING_PATTERN) == null) {
-            throw new IllegalArgumentException("Missing AE2 processing pattern component.");
+            return null;
         }
         return new StatisticalPatternDetails(what, encoded);
     }

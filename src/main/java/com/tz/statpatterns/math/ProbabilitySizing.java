@@ -51,7 +51,7 @@ public final class ProbabilitySizing {
     }
 
     private static ProbabilitySizingResult normalApproximationPlan(long targetSuccesses, double p, double alpha) {
-        var z = inverseStandardNormal(1.0 - alpha / 2.0);
+        var z = inverseStandardNormal(1.0 - alpha);
         var attempts = Math.max(targetSuccesses, (long) Math.ceil(targetSuccesses / p));
         while (normalZ(targetSuccesses, attempts, p) < z) {
             attempts++;
