@@ -6,10 +6,13 @@ license="MIT"
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
-authors="ZincG"
+authors="Tao, ZincG"
 description='''
+AE2  概率样板供应器
 AE2 addon that adds statistical processing patterns for probabilistic production chains.
 '''
+[[mixins]]
+config="${mod_id}.mixins.json"
 
 [[dependencies.${mod_id}]]
     modId="neoforge"

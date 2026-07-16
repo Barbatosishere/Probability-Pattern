@@ -1,11 +1,16 @@
 package com.tz.statpatterns.network;
 
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 import com.google.common.collect.ImmutableSet;
 
+import com.tz.statpatterns.crafting.StatisticalPatternDetails;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.level.Level;
@@ -24,7 +29,9 @@ import appeng.api.networking.crafting.ICraftingSimulationRequester;
 import appeng.api.networking.crafting.ICraftingSubmitResult;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
+import appeng.api.stacks.GenericStack;
 import appeng.api.storage.AEKeyFilter;
+import appeng.crafting.CraftingCalculation;
 
 public final class PCraftingService implements ICraftingService {
 
@@ -36,8 +43,8 @@ public final class PCraftingService implements ICraftingService {
 
     @Override
     public Future<ICraftingPlan> beginCraftingCalculation(Level level,
-            ICraftingSimulationRequester simRequester, AEKey craftWhat, long amount,
-            CalculationStrategy strategy) {
+                                                          ICraftingSimulationRequester simRequester, AEKey craftWhat, long amount,
+                                                          CalculationStrategy strategy) {
         return delegate.beginCraftingCalculation(level, simRequester, craftWhat, amount, strategy);
     }
 
@@ -74,8 +81,8 @@ public final class PCraftingService implements ICraftingService {
 
     @Override
     public ICraftingSubmitResult submitJob(ICraftingPlan job,
-            @Nullable ICraftingRequester requestingMachine, @Nullable ICraftingCPU target,
-            boolean prioritizePower, IActionSource src) {
+                                           @Nullable ICraftingRequester requestingMachine, @Nullable ICraftingCPU target,
+                                           boolean prioritizePower, IActionSource src) {
         return delegate.submitJob(job, requestingMachine, target, prioritizePower, src);
     }
 
@@ -109,3 +116,4 @@ public final class PCraftingService implements ICraftingService {
         return delegate.isRequestingAny();
     }
 }
+

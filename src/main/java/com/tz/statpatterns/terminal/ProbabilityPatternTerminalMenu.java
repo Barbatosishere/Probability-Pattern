@@ -53,7 +53,7 @@ public class ProbabilityPatternTerminalMenu extends PatternEncodingTermMenu {
     public void onSlotChange(Slot slot) {
         super.onSlotChange(slot);
         var encodedStack = patternHost.getLogic().getEncodedPatternInv().getStackInSlot(0);
-        var encoded = encodedStack.get(Components.ENCODED_STATISTICAL_PATTERN.get());
+        var encoded = encodedStack.get(Components.ENCODED_STATISTICAL_PATTERN);
         if (encoded != null) {
             this.probability = encoded.successProbability();
         }

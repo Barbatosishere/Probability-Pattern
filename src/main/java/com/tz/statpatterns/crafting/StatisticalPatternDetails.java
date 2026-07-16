@@ -22,10 +22,11 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
 import appeng.api.stacks.KeyCounter;
-import appeng.crafting.pattern.AEProcessingPattern;
 import appeng.crafting.pattern.EncodedProcessingPattern;
 
-public final class StatisticalPatternDetails extends AEProcessingPattern {
+public final class StatisticalPatternDetails implements IPatternDetails {
+
+    private final AEItemKey definition;
     private final EncodedStatisticalPattern encoded;
     @Nullable
     private final Long requestedOutputAmount;
@@ -36,9 +37,25 @@ public final class StatisticalPatternDetails extends AEProcessingPattern {
 
     private StatisticalPatternDetails(AEItemKey definition, EncodedStatisticalPattern encoded,
                                       @Nullable Long requestedOutputAmount) {
-        super(definition);
+        this.definition = Objects.requireNonNull(definition, "definition");
         this.encoded = Objects.requireNonNull(encoded, "encoded");
         this.requestedOutputAmount = requestedOutputAmount;
+    }
+
+    @Override
+    public AEItemKey getDefinition() {
+        return definition;
+    }
+
+    @Override
+    public int hashCode() {
+        return definition.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj != null && obj.getClass() == getClass()
+                && ((StatisticalPatternDetails) obj).definition.equals(definition);
     }
 
     @Nullable
@@ -46,18 +63,14 @@ public final class StatisticalPatternDetails extends AEProcessingPattern {
         if (what == null || what.getItem() != SPItems.PROBABILITY_PATTERN.get()) {
             return null;
         }
-        var encoded = what.get(Components.ENCODED_STATISTICAL_PATTERN.get());
+        var encoded = what.get(Components.ENCODED_STATISTICAL_PATTERN);
         if (encoded == null) {
-            return null;
-        }
-        if (what.get(AEComponents.ENCODED_PROCESSING_PATTERN) == null) {
             return null;
         }
         return new StatisticalPatternDetails(what, encoded);
     }
 
-    public static ItemStack encode(List<GenericStack> sparseInputs, List<GenericStack> sparseOutputs,
-            double successProbability, double alpha) {
+    public static ItemStack encode(List<GenericStack> sparseInputs, List<GenericStack> sparseOutputs, double successProbability, double alpha) {
         var output = sparseOutputs.stream().filter(Objects::nonNull).findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("At least one output is required."));
         var compactInputs = sparseInputs.stream().filter(Objects::nonNull).toList();
@@ -67,8 +80,7 @@ public final class StatisticalPatternDetails extends AEProcessingPattern {
 
         var stack = new ItemStack(SPItems.PROBABILITY_PATTERN.get());
         stack.set(AEComponents.ENCODED_PROCESSING_PATTERN, new EncodedProcessingPattern(sparseInputs, sparseOutputs));
-        stack.set(Components.ENCODED_STATISTICAL_PATTERN.get(),
-                new EncodedStatisticalPattern(compactInputs, output, successProbability, alpha, 30));
+        stack.set(Components.ENCODED_STATISTICAL_PATTERN, new EncodedStatisticalPattern(compactInputs, output, successProbability, alpha, 30));
         return stack;
     }
 
@@ -80,7 +92,7 @@ public final class StatisticalPatternDetails extends AEProcessingPattern {
     public static PatternDetailsTooltip getInvalidPatternTooltip(ItemStack stack, Level level,
                                                                  @Nullable Exception cause, TooltipFlag flags) {
         var tooltip = new PatternDetailsTooltip(PatternDetailsTooltip.OUTPUT_TEXT_PRODUCES);
-        var encoded = stack.get(Components.ENCODED_STATISTICAL_PATTERN.get());
+        var encoded = stack.get(Components.ENCODED_STATISTICAL_PATTERN);
         if (encoded != null) {
             encoded.inputsPerAttempt().forEach(tooltip::addInput);
             tooltip.addOutput(encoded.output());

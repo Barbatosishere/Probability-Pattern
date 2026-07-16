@@ -1,5 +1,6 @@
 package com.tz.statpatterns;
 
+import appeng.core.definitions.AEItems;
 import appeng.core.definitions.ItemDefinition;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -25,7 +26,7 @@ public final class SPCreativeTabs {
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = CREATIVE_TABS.register("main",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.probabilitypattern"))
-                    .icon(() -> new ItemStack(SPItems.PROBABILITY_PATTERN.get()))
+                    .icon(() -> new ItemStack(AEItems.PROCESSING_PATTERN.get()))
                     .displayItems((parameters, output) -> {
                         for (var itemDefinition : itemDefs) {
                             output.accept(itemDefinition);

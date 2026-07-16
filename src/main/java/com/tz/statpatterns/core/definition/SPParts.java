@@ -5,11 +5,9 @@ import appeng.api.parts.IPartItem;
 import appeng.api.parts.PartModels;
 import appeng.core.definitions.ColoredItemDefinition;
 import appeng.core.definitions.ItemDefinition;
-import appeng.items.parts.ColoredPartItem;
 import appeng.items.parts.PartItem;
 import appeng.items.parts.PartModelsHelper;
 import com.tz.statpatterns.api.ids.ItemIds;
-import com.tz.statpatterns.part.ProbabilityPatternProviderPart;
 import com.tz.statpatterns.part.ProbabilityPatternTerminalPart;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -24,7 +22,6 @@ public class SPParts {
     public static final List<ColoredItemDefinition<?>> COLORED_PARTS = new ArrayList<>();
 
     public static final ItemDefinition<PartItem<ProbabilityPatternTerminalPart>> ProbabilityPatternTerminalPart = createPart("Probability Pattern Terminal Part", ItemIds.PROBABILITY_PATTERN_TERMINAL, ProbabilityPatternTerminalPart.class, ProbabilityPatternTerminalPart::new);
-    public static final ItemDefinition<PartItem<ProbabilityPatternProviderPart>> ProbabilityPatternProviderPart = createPart("Probability Pattern Provider Part", ItemIds.PROBABILITY_PATTERN_PROVIDER_PART, ProbabilityPatternProviderPart.class, ProbabilityPatternProviderPart::new);
 
     private static <T extends IPart> ItemDefinition<PartItem<T>> createPart(
             String englishName,

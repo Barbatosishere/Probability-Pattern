@@ -1,31 +1,21 @@
 package com.tz.statpatterns.core.definition;
 
-import appeng.api.util.AEColor;
-import appeng.core.definitions.ColoredItemDefinition;
 import appeng.core.definitions.ItemDefinition;
 import com.google.common.base.Preconditions;
-import com.tz.statpatterns.ProbabilityPatternMod;
 import com.tz.statpatterns.SPCreativeTabs;
 import com.tz.statpatterns.api.ids.ItemIds;
 import com.tz.statpatterns.api.ids.SPCreativeTabIds;
+import com.tz.statpatterns.crafting.ProbabilityPatternItem;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-import appeng.api.crafting.PatternDetailsHelper;
-import appeng.items.parts.PartItem;
-
 import com.tz.statpatterns.crafting.StatisticalPatternDetails;
-import com.tz.statpatterns.part.ProbabilityPatternProviderPart;
-import com.tz.statpatterns.part.ProbabilityPatternTerminalPart;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static com.tz.statpatterns.ProbabilityPatternMod.MOD_ID;
@@ -36,12 +26,10 @@ public final class SPItems {
 
     // spotless:off
     private static final List<ItemDefinition<?>> ITEMS = new ArrayList<>();
-
-
-    public static final ItemDefinition<Item> PROBABILITY_PATTERN = item("Probability Pattern", ItemIds.PROBABILITY_PATTERN, (p) -> PatternDetailsHelper.encodedPatternItemBuilder(StatisticalPatternDetails::decode)
-            .itemProperties(new Item.Properties().stacksTo(1))
-            .invalidPatternTooltip(StatisticalPatternDetails::getInvalidPatternTooltip)
-            .build());
+    public static final ItemDefinition<Item> PROBABILITY_PATTERN = item("Probability Pattern", ItemIds.PROBABILITY_PATTERN, (p) -> new ProbabilityPatternItem(
+            p.stacksTo(64),
+            StatisticalPatternDetails::decode,
+            StatisticalPatternDetails::getInvalidPatternTooltip));
     private SPItems() {
     }
     public static List<ItemDefinition<?>> getItems() {
