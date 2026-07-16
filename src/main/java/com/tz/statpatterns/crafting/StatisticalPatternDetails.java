@@ -118,15 +118,12 @@ public final class StatisticalPatternDetails extends AEProcessingPattern {
 
         for (var input : encoded.inputsPerAttempt()) {
             var key = input.what();
-            var amount = Math.multiplyExact(input.amount(), sizing().attempts());
+            var perAttempt = input.amount();
             var available = allInputs.get(key);
-            if (available < amount) {
-                throw new RuntimeException(
-                        "Expected at least %d of %s when pushing probability pattern, but only %d available"
-                                .formatted(amount, key, available));
+            if (available >= perAttempt) {
+                inputSink.pushInput(key, perAttempt);
+                allInputs.remove(key, perAttempt);
             }
-            inputSink.pushInput(key, amount);
-            allInputs.remove(key, amount);
         }
     }
 
