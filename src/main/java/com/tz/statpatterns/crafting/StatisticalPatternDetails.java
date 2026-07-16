@@ -118,11 +118,9 @@ public final class StatisticalPatternDetails extends AEProcessingPattern {
 
         for (var input : encoded.inputsPerAttempt()) {
             var key = input.what();
-            var perAttempt = input.amount();
-            var available = allInputs.get(key);
-            if (available >= perAttempt) {
-                inputSink.pushInput(key, perAttempt);
-                allInputs.remove(key, perAttempt);
+            var amount = allInputs.get(key);
+            if (amount > 0) {
+                inputSink.pushInput(key, amount);
             }
         }
     }
