@@ -2,68 +2,78 @@
 
 ![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-blue?logo=minecraft)
 ![NeoForge](https://img.shields.io/badge/NeoForge-21.1.169-orange)
-![AE2](https://img.shields.io/badge/AE2-19.2.0-green)
+![AE2](https://img.shields.io/badge/AE2-19.2.17-green)
 ![Java](https://img.shields.io/badge/Java-21-red)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![License](https://img.shields.io/badge/License-LGPL%20v3-blue)
 
 > **English version**: [README_en.md](README_en.md)
 
-**Probability Pattern for AE2** 是 [Applied Energistics 2](https://github.com/AppliedEnergistics/Applied-Energistics-2) 的一个独立 NeoForge 扩展 Mod，为 Minecraft 1.21.1 增加"概率样板"功能。
-
-当机器有**成功率**的概念（例如每次合成有 80% 概率产出目标物品）时，普通样板无法处理这种不确定性。这个 Mod 使用统计学中的**二项分布**来计算需要多少次尝试才能以足够高的置信度达到目标产出量。
+**Probability Pattern for AE2** 是 [Applied Energistics 2](https://github.com/AppliedEnergistics/Applied-Energistics-2) 的 NeoForge 扩展模组，为 Minecraft 1.21.1 增加概率样板功能。适用于有随机产出率的机器（如 GT 的副产、魔法模组的概率合成等）。
 
 ---
 
-## 核心原理
+## 工作原理
 
-概率样板将机器的随机产出建模为**二项过程**：
+概率样板将随机产出建模为**二项分布**：每次尝试以概率 p 成功，目标产出 N 个。系统计算所需尝试次数，使得"产出不足"的风险 ≤ α。
 
 | 参数 | 含义 | 默认值 |
 |------|------|--------|
-| **目标数量** (N) | 你想要获得的最终产出数 | — |
-| **单次成功率** (p) | 每次尝试产出成功的概率 | 80% |
-| **显著性水平** (α) | 允许的产出不足风险 | 5% |
+| p | 单次尝试成功率 | 0.8 (80%) |
+| α | 显著性水平 / 可接受的少产风险 | 0.05 (5%) |
+| N | 目标产出数量 | 由 AE2 合成请求决定 |
 
-系统自动计算**所需尝试次数**，使得产出低于目标数量的概率不超过 α。
+### 计算策略
 
-### 计算方式
+- **小批量（N ≤ 30）**：精确二项分布左尾概率，逐次累加
+- **大批量（N > 30）**：正态近似 N(np, np(1-p))，采用单尾 z 检验
 
-- **小目标**（N ≤ 30）：使用精确的二项分布左尾概率计算
-- **大目标**（N > 30）：使用正态近似，计算速度快且精度足够
+### 链式合成
 
-### 示例
+概率样板支持链式合成——中间产物的需求量会沿着合成树向上传播，每一层独立计算所需的尝试次数。
 
-> **目标：1000 个产物，单次成功率 80%，α = 0.05**
->
-> 正态近似计算出需要 **1286 次尝试**，此时产出不足 1000 个的概率 ≤ 5%。
+---
+
+## 技术实现
+
+### Mixin 注入层
+
+通过两个 Mixin 在 AE2 合成计算期间介入：
+
+| Mixin | 作用 |
+|-------|------|
+| `CraftingServiceMixin` | 在 `beginCraftingCalculation` 时将 `IGrid` 包装为 `PGrid`，使 `getCraftingService()` 返回 `PCraftingService` |
+| `CraftingTreeNodeMixin` | 在合成树的每个节点捕获实际请求量，为 `StatisticalPatternDetails` 注入 `forRequest(total)`，使每层独立计算概率规模 |
+
+### 代理层
+
+- **PGrid** — 包装 AE2 的 `IGrid`，拦截 `getService(ICraftingService.class)` 返回 `PCraftingService`
+- **PCraftingService** — 委托模式包装 `ICraftingService`，保持与 AE2 合成系统的透明对接
+
+### 样板系统
+
+- **EncodedStatisticalPattern** — 持久化数据组件（`inputsPerAttempt`、`output`、`successProbability`、`alpha`、`smallSampleLimit`），通过 Codec 支持 NBT 序列化与网络同步
+- **StatisticalPatternDetails** — 继承 `AEProcessingPattern`，在 `getInputs()` 时按概率计算后的总尝试次数缩放输入量；`forRequest(total)` 创建指定请求量的实例
+- **ProbabilityPatternItem** — 自定义 `EncodedPatternItem`，空白样板不显示无效的 pattern tooltip
 
 ---
 
 ## 使用方法
 
-### 1. 合成终端
+### 1. 获取终端
 
-合成 `probabilitypattern:probability_pattern_terminal`（概率样板终端），放置并打开。
+在创造模式标签页 "AE2 概率样板" 中取出**概率样板编码终端**，放置并打开。
 
 ### 2. 编码样板
 
-| 步骤 | 说明 |
-|------|------|
-| ① 放入材料 | 将**单次尝试**所需的材料样本放入 3×3 输入格 |
-| ② 放入产物 | 将目标产物放入输出槽 |
-| ③ 放入空白样板 | 将空白 `probabilitypattern:probability_pattern` 放入样板槽 |
-| ④ 调整参数 | 设置目标数量、成功率和 α |
-| ⑤ 点击编码 | 生成概率样板 |
+1. 将**单次尝试**的输入样本放入输入格
+2. 将目标产物放入输出槽
+3. 放入空白 `probability_pattern`
+4. 在终端的概率输入框中设置成功率（如 `0.8` 即 80%）
+5. 点击编码按钮
 
-### 3. 终端控件
+### 3. JEI 集成
 
-概率样板的编码界面在 AE2 标准图案终端的基础上增加了三个小控件：
-
-- **p%** — 单次尝试成功率，默认 `80%`
-- **a%** — 显著性水平（允许的产出不足风险），默认 `5%`
-- **N** — 目标产出数量
-
-界面会实时显示计划尝试次数（Plan），如果参数无效则显示红色错误提示。
+支持从 JEI 配方直接拖拽到终端。如果配方类包含 `successProbability` / `probability` / `chance` 方法或字段，JEI 会自动提取成功率并填入。
 
 ---
 
@@ -72,9 +82,9 @@
 | 项目 | 值 |
 |------|-----|
 | Mod ID | `probabilitypattern` |
-| 模组名称 | Probability Pattern for AE2 |
-| 当前版本 | 0.1.0 |
-| 开发群组 | `com.tz.statpatterns` |
+| 名称 | Probability Pattern for AE2 |
+| 版本 | 0.1.0 |
+| 包名 | `com.tz.statpatterns` |
 
 ### 依赖
 
@@ -82,88 +92,72 @@
 |------|------|
 | Minecraft | 1.21.1 |
 | NeoForge | ≥ 21.1.169 |
-| Applied Energistics 2 | ≥ 19.x |
+| Applied Energistics 2 | ≥ 19.2.17 |
+| JEI（可选） | ≥ 19.27 |
+
+---
+
+## 项目结构
+
+```
+src/main/java/com/tz/statpatterns/
+├── ProbabilityPatternMod.java          # Mod 入口
+├── SPCreativeTabs.java                 # 创造模式标签页
+├── api/ids/
+│   ├── BlockIds.java                   # 方块 ID
+│   ├── Components.java                 # 数据组件注册
+│   ├── ItemIds.java                    # 物品 ID
+│   └── SPCreativeTabIds.java           # 标签页 ID
+├── client/
+│   ├── ProbabilityPatternClient.java   # 客户端注册
+│   └── ProbabilityPatternTerminalScreen.java  # 编码界面（含概率输入框）
+├── core/
+│   └── SP.java                         # 核心常量
+├── core/definition/
+│   ├── SPBlockEntities.java            # 方块实体注册
+│   ├── SPBlocks.java                   # 方块注册
+│   ├── SPItems.java                    # 物品注册
+│   ├── SPMenus.java                    # 菜单注册
+│   └── SPParts.java                    # 线缆部件注册
+├── crafting/
+│   ├── EncodedStatisticalPattern.java  # 概率样板数据组件
+│   ├── ProbabilityPatternItem.java     # 概率样板物品
+│   └── StatisticalPatternDetails.java  # AE2 样板详情（概率缩放）
+├── init/
+│   └── InitCapabilityProviders.java    # Capability 注册
+├── integration/jei/
+│   └── ProbabilityPatternJeiPlugin.java  # JEI 集成（配方拖拽 & 概率自动提取）
+├── math/
+│   ├── DistributionMode.java           # 分布模式枚举
+│   ├── ProbabilitySizing.java          # 核心算法（二项分布 & 正态近似）
+│   └── ProbabilitySizingResult.java    # 计算结果
+├── mixin/
+│   ├── CraftingServiceMixin.java       # 拦截 beginCraftingCalculation，注入 PGrid
+│   └── CraftingTreeNodeMixin.java      # 拦截合成树节点，注入 forRequest 总量
+├── network/
+│   ├── PCraftingService.java           # ICraftingService 代理
+│   ├── PGrid.java                      # IGrid 代理
+│   └── PGridNode.java                  # IGridNode 代理
+├── part/
+│   └── ProbabilityPatternTerminalPart.java  # 线缆附着终端部件
+└── terminal/
+    └── ProbabilityPatternTerminalMenu.java  # 终端菜单逻辑（编码 & 概率同步）
+```
 
 ---
 
 ## 构建
 
-需要 **Java 21** 来运行 Gradle。
-
-### 方式一：针对发布版本构建
-
-在 `gradle.properties` 中设置 `ae2_version` 为需要的版本号，然后运行：
+需要 **Java 21**。
 
 ```powershell
 .\gradlew.bat build
 ```
 
-### 方式二：针对本地 AE2 源码构建（推荐调试）
-
-将 AE2 源码放在上级目录，在 `settings.gradle` 中添加 `includeBuild(''..'')`，然后运行：
-
-```powershell
-.\gradlew.bat -p statistical-patterns-addon build
-```
-
----
-
-## 已实现功能
-
-- ✅ 独立的 NeoForge 模组元数据和 Gradle 构建
-- ✅ AE2 自定义编码样板物品（`probabilitypattern:probability_pattern`）
-- ✅ 持久化且网络同步的概率样板数据组件
-- ✅ 精确二项分布与正态近似计算逻辑
-- ✅ AE2 图案终端编码器集成
-- ✅ Crafting CPU 重试按钮：取消卡住的剩余任务，将未完成的产出重新提交给 AE2 合成规划器
-- ✅ 概率样板供应器方块和线缆部件
-
-## 待实现功能
-
-- ⬜ 存储/网络层面追踪观察到的实际返还数量
-
----
-
-## 技术架构
-
-```
-com.tz.statpatterns
-├── math/
-│   ├── ProbabilitySizing.java          # 核心算法：计算所需尝试次数
-│   ├── ProbabilitySizingResult.java     # 计算结果记录
-│   └── DistributionMode.java            # 分布模式枚举（精确二项/正态近似）
-├── crafting/
-│   ├── StatisticalPatternDetails.java   # AE2 样板详情实现
-│   └── EncodedStatisticalPattern.java   # 编码后概率样板的数据组件
-├── block/
-│   └── ProbabilityPatternProviderBlock.java  # 方块定义
-├── blockentity/crafting/
-│   └── ProbabilityPatternProviderBlockEntity.java  # 方块实体
-├── part/
-│   ├── ProbabilityPatternProviderPart.java    # 线缆附着供应器部件
-│   └── ProbabilityPatternTerminalPart.java    # 线缆附着终端部件
-├── menu/
-│   └── ProbabilityPatternTerminalMenu.java    # 交互菜单
-├── client/
-│   ├── ProbabilityPatternClient.java          # 客户端注册
-│   └── ProbabilityPatternTerminalScreen.java  # 编码界面渲染
-├── core/definition/
-│   ├── SPBlocks.java                   # 方块注册
-│   ├── SPBlockEntities.java            # 方块实体注册
-│   ├── SPItems.java                    # 物品注册
-│   └── SPParts.java                    # 部件注册
-├── init/
-│   └── InitCapabilityProviders.java    # Capability 注册
-├── api/ids/                            # 资源路径常量
-├── integration/jei/                    # JEI 集成
-├── ProbabilityPatternMod.java          # Mod 主入口
-├── SPComponents.java                   # 数据组件注册
-├── SPMenus.java                        # 菜单注册
-└── SPCreativeTabs.java                 # 创造模式标签页
-```
+产物在 `build/libs/probabilitypattern-0.1.0.jar`。
 
 ---
 
 ## 许可证
 
-本项目基于 [MIT](LICENSE) 许可证开源。
+本项目基于 [GNU LGPLv3](LICENSE) 开源。作为 AE2 的衍生作品，遵循 AE2 的许可协议。
