@@ -4,13 +4,11 @@ import appeng.core.definitions.AEItems;
 import appeng.core.definitions.ItemDefinition;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.tz.statpatterns.core.definition.SPItems;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -40,11 +38,6 @@ public final class SPCreativeTabs {
     public static void addExternal(ResourceKey<CreativeModeTab> tab, ItemDefinition<?> itemDef) {
         externalItemDefs.put(tab, itemDef);
     }
-
     private SPCreativeTabs() {
-    }
-
-    public static void register(IEventBus modEventBus) {
-        CREATIVE_TABS.register(modEventBus);
     }
 }

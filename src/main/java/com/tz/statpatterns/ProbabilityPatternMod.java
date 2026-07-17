@@ -15,15 +15,9 @@ public final class ProbabilityPatternMod {
     public static final String MOD_ID = "probabilitypattern";
 
     public ProbabilityPatternMod(IEventBus modEventBus) {
-        PartModels.registerModels(List.of(
-                id("part/probability_pattern_terminal_off"),
-                id("part/probability_pattern_terminal_on")));
-
-        SPParts.init();
-        SPBlockEntities.DR.register(modEventBus);
+        PartModels.registerModels(List.of(id("part/probability_pattern_terminal_off"), id("part/probability_pattern_terminal_on")));
         Components.DR.register(modEventBus);
         SPItems.DR.register(modEventBus);
-        SPBlocks.DR.register(modEventBus);
         SPMenus.register(modEventBus);
         SPCreativeTabs.CREATIVE_TABS.register(modEventBus);
 
