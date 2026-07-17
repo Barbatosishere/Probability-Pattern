@@ -4,7 +4,7 @@
 ![NeoForge](https://img.shields.io/badge/NeoForge-21.1.169-orange)
 ![AE2](https://img.shields.io/badge/AE2-19.2.0-green)
 ![Java](https://img.shields.io/badge/Java-21-red)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![License](https://img.shields.io/badge/License-LGPL%20v3-blue)
 
 > **🇨🇳 中文版本**: Please refer to [README.md](README.md) — the Chinese version is the default.
 
