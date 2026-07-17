@@ -150,12 +150,6 @@ src/main/java/com/tz/statpatterns/
 
 需要 **Java 21**。
 
-```powershell
-.\gradlew.bat build
-```
-
-产物在 `build/libs/probabilitypattern-0.1.0.jar`。
-
 ---
 
 ## 许可证
