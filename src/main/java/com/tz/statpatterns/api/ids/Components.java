@@ -1,6 +1,5 @@
 package com.tz.statpatterns.api.ids;
 
-import appeng.block.crafting.PushDirection;
 import com.tz.statpatterns.crafting.EncodedStatisticalPattern;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -12,8 +11,7 @@ import static com.tz.statpatterns.ProbabilityPatternMod.MOD_ID;
 
 public class Components {
     public static final DeferredRegister<DataComponentType<?>> DR = DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MOD_ID);
-    public static final DataComponentType<PushDirection> EXPORTED_PUSH_DIRECTION = register("exported_push_direction", builder -> builder.persistent(PushDirection.CODEC).networkSynchronized(PushDirection.STREAM_CODEC));
-    public static final DataComponentType<EncodedStatisticalPattern> ENCODED_STATISTICAL_PATTERN = register("encoded_statistical_pattern", builder -> builder.persistent(EncodedStatisticalPattern.CODEC));
+    public static final DataComponentType<EncodedStatisticalPattern> ENCODED_STATISTICAL_PATTERN = register("encoded_statistical_pattern", builder -> builder.persistent(EncodedStatisticalPattern.CODEC).networkSynchronized(EncodedStatisticalPattern.STREAM_CODEC));
 
     private static <T> DataComponentType<T> register(String name, Consumer<DataComponentType.Builder<T>> customizer) {
         var builder = DataComponentType.<T>builder();

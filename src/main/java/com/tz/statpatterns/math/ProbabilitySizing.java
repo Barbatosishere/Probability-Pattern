@@ -20,27 +20,6 @@ public final class ProbabilitySizing {
         return normalApproximationPlan(targetSuccesses, successProbability, alpha);
     }
 
-    public static long additionalAttemptsAfterFailure(long targetSuccesses, long observedSuccesses,
-            double successProbability, double alpha, int smallSampleLimit) {
-        var remaining = Math.max(0, targetSuccesses - observedSuccesses);
-        if (remaining == 0) {
-            return 0;
-        }
-        return planAttempts(remaining, successProbability, alpha, smallSampleLimit).attempts();
-    }
-
-    public static boolean shouldSubmit(long targetSuccesses, long attempts, double successProbability,
-            double alpha, int smallSampleLimit) {
-        validate(targetSuccesses, successProbability, alpha);
-        if (successProbability == 1.0) {
-            return attempts >= targetSuccesses;
-        }
-        var risk = targetSuccesses <= smallSampleLimit
-                ? binomialLowerTail(attempts, successProbability, targetSuccesses - 1)
-                : normalUnderproductionRisk(targetSuccesses, attempts, successProbability);
-        return risk <= alpha;
-    }
-
     private static ProbabilitySizingResult exactBinomialPlan(long targetSuccesses, double p, double alpha) {
         var attempts = Math.max(targetSuccesses, (long) Math.ceil(targetSuccesses / p));
         while (binomialLowerTail(attempts, p, targetSuccesses - 1) > alpha) {

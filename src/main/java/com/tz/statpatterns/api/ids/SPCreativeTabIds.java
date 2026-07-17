@@ -11,10 +11,7 @@ public final class SPCreativeTabIds {
 
     public static final ResourceKey<CreativeModeTab> MAIN = create("main");
 
-    public static final ResourceKey<CreativeModeTab> FACADES = create("facades");
-
     private static ResourceKey<CreativeModeTab> create(String path) {
         return ResourceKey.create(Registries.CREATIVE_MODE_TAB, SP.makeId(path));
     }
 }
-

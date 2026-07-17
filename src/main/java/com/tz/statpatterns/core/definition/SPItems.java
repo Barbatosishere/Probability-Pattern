@@ -19,21 +19,18 @@ import java.util.*;
 import java.util.function.Function;
 
 import static com.tz.statpatterns.ProbabilityPatternMod.MOD_ID;
-import static com.tz.statpatterns.SPCreativeTabs.MAIN;
 
 public final class SPItems {
     public static final DeferredRegister.Items DR = DeferredRegister.createItems(MOD_ID);
 
-    // spotless:off
     private static final List<ItemDefinition<?>> ITEMS = new ArrayList<>();
+
     public static final ItemDefinition<Item> PROBABILITY_PATTERN = item("Probability Pattern", ItemIds.PROBABILITY_PATTERN, (p) -> new ProbabilityPatternItem(
             p.stacksTo(64),
             StatisticalPatternDetails::decode,
             StatisticalPatternDetails::getInvalidPatternTooltip));
+
     private SPItems() {
-    }
-    public static List<ItemDefinition<?>> getItems() {
-        return Collections.unmodifiableList(ITEMS);
     }
 
     static <T extends Item> ItemDefinition<T> item(String name, ResourceLocation id, Function<Item.Properties, T> factory) {
@@ -47,11 +44,8 @@ public final class SPItems {
         Preconditions.checkArgument(id.getNamespace().equals(MOD_ID), "Can only register for AE2");
         var definition = new ItemDefinition<>(name, DR.registerItem(id.getPath(), factory));
 
-        if (Objects.equals(group, MAIN)) {
+        if (group != null) {
             SPCreativeTabs.add(definition);
-        } else if (group != null) {
-            SPCreativeTabs.add(definition);
-            SPCreativeTabs.addExternal(group, definition);
         }
 
         ITEMS.add(definition);
