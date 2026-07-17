@@ -21,6 +21,9 @@ package com.tz.statpatterns;
 import java.util.List;
 
 import com.tz.statpatterns.api.ids.Components;
+import appeng.api.crafting.PatternDetailsHelper;
+import com.tz.statpatterns.crafting.ProbabilityPatternDecoder;
+
 import com.tz.statpatterns.core.definition.*;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
@@ -39,6 +42,8 @@ public final class ProbabilityPatternMod {
         Components.DR.register(modEventBus);
         SPItems.DR.register(modEventBus);
         SPMenus.register(modEventBus);
+        PatternDetailsHelper.registerDecoder(ProbabilityPatternDecoder.INSTANCE);
+
         SPCreativeTabs.CREATIVE_TABS.register(modEventBus);
 
     }
