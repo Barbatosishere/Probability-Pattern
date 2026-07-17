@@ -34,6 +34,8 @@ public final class ProbabilityPatternMod {
 
     public ProbabilityPatternMod(IEventBus modEventBus) {
         PartModels.registerModels(List.of(id("part/probability_pattern_terminal_off"), id("part/probability_pattern_terminal_on")));
+
+        SPParts.init();
         Components.DR.register(modEventBus);
         SPItems.DR.register(modEventBus);
         SPMenus.register(modEventBus);
