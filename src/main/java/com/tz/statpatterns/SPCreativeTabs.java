@@ -1,4 +1,4 @@
-﻿package com.tz.statpatterns;
+package com.tz.statpatterns;
 
 import appeng.core.definitions.AEItems;
 import appeng.core.definitions.ItemDefinition;

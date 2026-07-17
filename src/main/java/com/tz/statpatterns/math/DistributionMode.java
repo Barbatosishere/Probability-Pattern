@@ -1,4 +1,4 @@
-﻿
+
 /*
  * Probability Pattern for AE2
  * Copyright (C) 2026 TaoLe-si
